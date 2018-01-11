@@ -1,0 +1,90 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package chatapplication;
+
+import java.awt.BorderLayout;
+import javax.swing.*;
+import java.awt.event.*;
+import java.io.*;
+import java.net.*;
+
+/*
+ * @author Rajesh R. Patkar
+ */
+public class ConcurrentClient {
+
+    public static void main(String[] args) throws Exception{
+     
+        Socket soc = new Socket("127.0.0.1",9081);
+        BufferedReader nis = new BufferedReader(
+                                 new InputStreamReader(
+                                     soc.getInputStream()
+                                 )
+                             );
+        PrintWriter nos = new PrintWriter(
+                              new BufferedWriter(
+                                  new OutputStreamWriter(
+                                     soc.getOutputStream()
+                                  )
+                              ),true
+                          );
+        String Username = JOptionPane.showInputDialog(
+                              "Please Enter you Username"
+                          );
+        
+        JFrame f1 = new JFrame(Username + "`s Chat");
+        JButton b1 = new JButton("Send");
+        JTextArea ta = new JTextArea();
+        ta.setEditable(false);
+        JTextField tf = new JTextField(20);
+        JPanel p1 = new JPanel();
+        p1.add(tf);
+        p1.add(b1);
+        f1.add(ta);
+        f1.add(BorderLayout.SOUTH,p1);
+        ChatListener l1 = new ChatListener(tf,ta,nos,Username);
+        b1.addActionListener(l1);
+        tf.addActionListener(l1);
+        f1.setSize(400,400);
+        f1.setVisible(true);
+        String str = nis.readLine();
+        while(!str.equalsIgnoreCase("End")){
+             for (PrintWriter o : ConcurrentServer.al) {
+                    o.println(str);
+                    
+                   
+                }
+             ta.append(str + "\n" );  
+            str = nis.readLine();
+        }
+        ta.append("Client Signing Off");
+        Thread.sleep(1000);
+        System.exit(0);
+                f1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+    }
+}
+
+class ChatListener implements ActionListener{
+   JTextArea ta;
+    JTextField tf ;
+   PrintWriter nos;
+   String Username;
+    public ChatListener(JTextField tf,JTextArea ta,PrintWriter nos,String Username){
+        this.tf = tf;
+        this.ta=ta;
+        this.nos = nos;
+        this.Username = Username;
+    }
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String str  = tf.getText();
+        //ta.append(Username+": "+str+"\n");
+        nos.println(Username+": "+str);
+        tf.setText("");
+    }
+    
+}
